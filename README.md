@@ -1,2 +1,1 @@
-# WiHK-wa-chatbot
-For Walk in Hong Kong's WhatsApp Chatbot
+# Tour info Scraper for IQP Sponsor WiHK
