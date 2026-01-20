@@ -1,0 +1,16 @@
+{
+  "name": "WebApp-WiHK-TourInfoScraper",
+  "productName": "WebApp-WiHK-TourInfoScraper",
+  "description": "My Electron application description",
+  "keywords": [],
+  "main": "./main.js",
+  "version": "1.0.0",
+  "author": "VKCat",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "39.0.0"
+  }
+}

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'">
+    <link href="./styles.css" rel="stylesheet">
+    <title>WiHK - Tour Information Scraper</title>
+  </head>
+  <body>
+    <h1>Tour Info Scraper</h1>
+    <div id="tis-entryField">
+      <label for="client-text"> <h2>Enter Client Message </h2></label>
+      <textarea id="client-text-input" name="client-text-input" onkeydown="handleKeyDown(event)"></textarea><br><br> 
+      <input type="button" id="submit-button" value="Generate Message" onclick="processClientMessage()">
+    </div>
+    <div>
+      <h2>Message to paste:</h2>
+      <textarea id="output-text" name="output-text" readonly></textarea>
+
+    </div>
+    
+    <script src="./app.js"></script>
+  </body>
+</html>
