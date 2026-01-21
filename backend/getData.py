@@ -6,8 +6,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Using auth. right now inapplicable -- so user is going to have to manually download the sheet in .csv format
-# creds = os.getenv("GOOGLE_SHEETS_CREDENTIALS")
-# user = gspread.authorize(creds)
+creds = os.getenv("GOOGLE_SHEETS_CREDENTIALS")
+user = gspread.authorize(creds)
 
 
 def fetch_google_sheet_data():

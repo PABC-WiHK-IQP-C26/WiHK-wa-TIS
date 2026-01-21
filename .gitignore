@@ -2,6 +2,9 @@
 backend/Data/*.csv
 backend/*.env
 
+#Credentials
+backend\Data\wihk-wpi-iqp-pabc-239700f57bc2.json
+
 # Python
 __pycache__/
 *.py[cod]
