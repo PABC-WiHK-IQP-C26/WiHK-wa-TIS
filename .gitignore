@@ -4,6 +4,7 @@ backend/*.env
 
 #Credentials
 backend/**/*.json
+backend\Data\wihk-wpi-iqp-pabc-239700f57bc2.json
 
 # Python
 __pycache__/
