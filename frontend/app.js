@@ -11,7 +11,7 @@ function handleKeyDown(event) {
 }
 
 function processClientMessage() {
-  // request data from google sheets
+  // request data from google sheets NEEDS IMPLEMENTATION
 
 
   // Get the value from the textarea
