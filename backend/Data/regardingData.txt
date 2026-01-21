@@ -1,0 +1,1 @@
+For local data copy, download the Master Booking document as a .csv file and place it in this folder

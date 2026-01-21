@@ -1,0 +1,16 @@
+{
+  "name": "WiHK_TourInfoScraper",
+  "productName": "WiHK_TourInfoScraper",
+  "description": "Tour info Scraper for WiHK - C26 IQP",
+  "keywords": [],
+  "main": "./main.js",
+  "version": "1.0.0",
+  "author": "Berenis Tekin",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "39.0.0"
+  }
+}
