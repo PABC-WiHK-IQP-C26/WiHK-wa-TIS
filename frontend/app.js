@@ -12,8 +12,7 @@ function handleKeyDown(event) {
 
 function processClientMessage() {
   // request data from google sheets NEEDS IMPLEMENTATION
-
-
+  getTourInfo();
   // Get the value from the textarea
   var clientInput = document.getElementById('client-text-input').value;
   console.log("Sending client input to server");
@@ -57,6 +56,7 @@ function setOutputText() {
 // function to get tour info from google sheets -- tied to getData.py
 function getTourInfo() {
   console.log("getTourInfo called");
+
   fetch("/grabSheet",{
     method: 'POST',
     headers: {

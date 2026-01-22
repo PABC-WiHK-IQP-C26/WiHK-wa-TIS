@@ -7,7 +7,8 @@ import gspread
 from getData import fetch_google_sheet_data
 
 # in-project dependencies
-from processInput import process_text  # accesses processInput.py
+from processInput import *  # accesses processInput.py
+from getData import *  # accesses getData.py
 
 load_dotenv()
 
@@ -39,6 +40,26 @@ def health_check():
         'service': 'data-processor-api',
         'timestamp': datetime.datetime.utcnow().isoformat()
     })
+
+@app.route('/getAuth', methods=['GET'])
+def get_auth():
+    try:
+        g_id = os.getenv("gs_id")  # gets google sheet id from .env file
+        print(f"Providing Google Sheet ID: {g_id}", flush=True)
+
+        
+        return jsonify({
+            'status': 'success',
+            'sheet_id': g_id
+        })
+    
+    except Exception as e:
+        print(f"Error in get_auth: {str(e)}", flush=True)
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
 
 @app.route('/grabSheet', methods=['POST'])
 def grab_sheet():
