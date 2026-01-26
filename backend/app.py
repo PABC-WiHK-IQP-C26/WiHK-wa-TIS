@@ -64,7 +64,8 @@ def get_auth():
 @app.route('/grabSheet', methods=['POST'])
 def grab_sheet():
     try:
-        data = fetch_google_sheet_data()
+        data = getTourData()
+        #getTourData()
         
         if data is None:
             return jsonify({
