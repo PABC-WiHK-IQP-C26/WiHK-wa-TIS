@@ -156,9 +156,15 @@ class fetchTour:
             'type_edu': safe_str(record.get("Tour Type")), #Types for Educational 
         }
         global location
-        location = re.split(r' - ', tour['itn_eng'])  # to split itineraries into locations
-        
-        
+        itinerary = tour['itn_eng']
+
+        # Ensure itinerary is a string before processing
+        if itinerary and isinstance(itinerary, str):
+            location = re.split(r'-|>', itinerary)
+            clean = list(filter(None, location))  # Remove empty strings
+        else:
+            location = []
+            clean = []
         return tour
 
     def getTourData():
@@ -184,10 +190,14 @@ class fetchTour:
             print(f"Duration: {tour['dur_eng']}", flush=True)
             print(f"Itinerary: {tour['itn_eng']}", flush=True)
             print(f"Type (Private): {tour['type_private']}", flush=True)
+            
+            
             for i in range(len(location)):
                 print(f"Location {i+1}: {location[i]}", flush=True)
             print("-----\n", flush=True)
 
+            
+            
             tour_list.append(tour)
         
         print(f"Extracted {len(tour_list)} tours from the data.", flush=True)
@@ -213,7 +223,7 @@ class tourIndexer:
         self.by_duration = defaultdict(list)
         self.by_type = defaultdict(list)
         for tour in self.tours:
-            location = tour.get('location', 'Unknown') #what about tours that have an extensive itinerary?
+            location = tour.get('', 'Unknown') #what about tours that have an extensive itinerary?
             duration = tour.get('dur_eng', 'Unknown')
             tour_type = tour.get('type', 'Regular') #default to regular if not specified
 
