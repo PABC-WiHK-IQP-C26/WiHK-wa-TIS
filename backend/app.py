@@ -4,11 +4,12 @@ from flask import Flask, request, jsonify, render_template, send_from_directory
 import datetime
 from dotenv import load_dotenv
 import gspread
-from getData import fetch_google_sheet_data
+from getData import tourIndexer
+from getData import fetchTour
 
 # in-project dependencies
-from processInput import *  # accesses processInput.py
-from getData import *  # accesses getData.py
+from processInput import * 
+from getData import * 
 
 load_dotenv()
 
@@ -64,7 +65,7 @@ def get_auth():
 @app.route('/grabSheet', methods=['POST'])
 def grab_sheet():
     try:
-        data = getTourData()
+        data = fetchTour.getTourData()
         #getTourData()
         
         if data is None:

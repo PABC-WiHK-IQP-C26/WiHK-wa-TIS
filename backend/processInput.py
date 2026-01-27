@@ -5,8 +5,9 @@ from spacy import displacy
 from spacy.lang.en import English
 #also import trad chinese at some point
 import rapidfuzz # this is to do fuzzy matching if needed ,, necessarily for typos or different spelling conventions people may be used to
-import NLTK # text processing library
-import getData
+#import NLTK 
+from getData import fetchTour
+from getData import tourIndexer
 
 def process_text(input_text):
     print("Processing text with spaCy NLP model...", flush=True)
