@@ -143,6 +143,7 @@ class fetchTour:
                 return None
         
         tour = {
+            'tour_code': safe_str(record.get("Tour Code")),
             'name_canto': safe_str(record.get("主題式導賞團")),
             'name_eng': safe_str(record.get("Thematic Tour")),
             'ov_canto': safe_str(record.get("簡介")),
@@ -155,16 +156,16 @@ class fetchTour:
             'type_private': safe_str(record.get("Tour Cat")), #Regular or Special
             'type_edu': safe_str(record.get("Tour Type")), #Types for Educational 
         }
-        global location
-        itinerary = tour['itn_eng']
 
+        itinerary = tour['itn_eng']
+        
         # Ensure itinerary is a string before processing
         if itinerary and isinstance(itinerary, str):
             location = re.split(r'-|>', itinerary)
-            clean = list(filter(None, location))  # Remove empty strings
+            tour['locations'] = [loc.strip() for loc in location if loc.strip()]  # Store cleaned locations in tour dict
         else:
-            location = []
-            clean = []
+            tour['locations'] = []
+        
         return tour
 
     def getTourData():
@@ -180,10 +181,10 @@ class fetchTour:
             print(f"DEBUG - Available keys in record: {list(records[0].keys())}", flush=True)
         
         tour_list = []
+        all_locations = []  # Collect all locations from all tours
+        
         for record in records:
             tour = fetchTour._parse_tour_record(record)
-
-
             
             print(f"Tour: {tour['name_eng']}", flush=True)
             print(f"Overview: {tour['ov_eng']}", flush=True)
@@ -191,14 +192,24 @@ class fetchTour:
             print(f"Itinerary: {tour['itn_eng']}", flush=True)
             print(f"Type (Private): {tour['type_private']}", flush=True)
             
-            
-            for i in range(len(location)):
-                print(f"Location {i+1}: {location[i]}", flush=True)
+            # Add tour locations to the master list
+            for i, loc in enumerate(tour['locations']):
+                print(f"Location {i+1}: {loc}", flush=True)
+                all_locations.append({
+                    'tour_code': tour['tour_code'],
+                    'tour_name': tour['name_eng'],
+                    'location': loc
+                })
             print("-----\n", flush=True)
-
-            
             
             tour_list.append(tour)
+        
+        # Save all locations to CSV after processing all tours
+        if all_locations:
+            locations_df = pd.DataFrame(all_locations)
+            locCSVPath = os.path.join(os.path.dirname(__file__), 'Data', 'locations.csv')
+            locations_df.to_csv(locCSVPath, index=True)
+            print(f"Saved {len(all_locations)} locations from {len(tour_list)} tours to: {locCSVPath}", flush=True)
         
         print(f"Extracted {len(tour_list)} tours from the data.", flush=True)
 
@@ -222,10 +233,15 @@ class tourIndexer:
         self.by_location = defaultdict(list)
         self.by_duration = defaultdict(list)
         self.by_type = defaultdict(list)
-        for tour in self.tours:
-            location = tour.get('', 'Unknown') #what about tours that have an extensive itinerary?
-            duration = tour.get('dur_eng', 'Unknown')
-            tour_type = tour.get('type', 'Regular') #default to regular if not specified
+
+        def by_location(self, tour, tour_code):
+            locations = tour['location']
+            for loc in locations:
+                if loc:
+                    self.indexes['location'][loc.strip().lower()].append(tour_code)
+
+                    #if loc in ['']
+            
 
 
 
