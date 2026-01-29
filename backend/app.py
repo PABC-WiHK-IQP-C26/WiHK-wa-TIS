@@ -93,7 +93,7 @@ def process_data():
         client_input = content.get('input', '')
 
         # Placeholder processing logic
-        processed_output = process_text(client_input)
+        processed_output = process_text(client_input, verbose=True)
 
         processed_requests.append({
             'input': client_input,

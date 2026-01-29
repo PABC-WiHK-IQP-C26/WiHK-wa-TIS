@@ -1,5 +1,5 @@
 import os
-import nltk
+
 import gspread
 from dotenv import load_dotenv
 import pandas as pd
@@ -8,6 +8,8 @@ from google.oauth2.service_account import Credentials
 from decimal import Decimal
 import re
 from collections import defaultdict
+
+import locale
 
 load_dotenv()
 
@@ -155,6 +157,10 @@ class fetchTour:
             'itn_eng': safe_str(record.get("In-person Itinerary")), # needs to be split into individual locations -- split by regex -
             'type_private': safe_str(record.get("Tour Cat")), #Regular or Special
             'type_edu': safe_str(record.get("Tour Type")), #Types for Educational 
+            
+
+
+
         }
 
         itinerary = tour['itn_eng']
@@ -162,6 +168,9 @@ class fetchTour:
         # Ensure itinerary is a string before processing
         if itinerary and isinstance(itinerary, str):
             location = re.split(r'-|>', itinerary)
+            if re.search(r'(TBC)', itinerary, re.IGNORECASE):
+                location = [loc for loc in location if not re.search(r'(TBC)', loc, re.IGNORECASE)]
+
             tour['locations'] = [loc.strip() for loc in location if loc.strip()]  # Store cleaned locations in tour dict
         else:
             tour['locations'] = []
@@ -191,6 +200,8 @@ class fetchTour:
             print(f"Duration: {tour['dur_eng']}", flush=True)
             print(f"Itinerary: {tour['itn_eng']}", flush=True)
             print(f"Type (Private): {tour['type_private']}", flush=True)
+            #print(f"Regular Group Prices: {tour['regular_group_prices']}", flush=True)
+            #print(f"Educational Group Prices: {tour['edu_group_prices']}", flush=True)
             
             # Add tour locations to the master list
             for i, loc in enumerate(tour['locations']):
@@ -226,13 +237,32 @@ class tourIndexer:
         Indexing by:
         - Tour Location
         - Tour Duration (Most tours fall into 2hrs)
-        - Tour Type (Regular v. Special)
+        - Tour Type (Regular v. Special, Educational v. Non-educational)
+        - tour size
         
         """
 
         self.by_location = defaultdict(list)
         self.by_duration = defaultdict(list)
         self.by_type = defaultdict(list)
+        self.by_price = defaultdict(list)
+        
+        # Location to region mapping
+        self.location_to_regions = {
+            "central": ["hong kong island"],
+            "tsim sha tsui": ["kowloon"],
+            "mong kok": ["kowloon"],
+            "sham shui po": ["kowloon"],
+            "sheung wan": ["hong kong island"],
+            "wan chai": ["hong kong island"],
+            "causeway bay": ["hong kong island"],
+            "yau ma tei": ["kowloon"],
+            "sha tau kok": ["new territories"],
+            "tai po": ["new territories"],
+            "tsuen wan": ["new territories"],
+            "sai ying pun": ["hong kong island"],
+            "temple street": ["kowloon"],
+        }
 
         def by_location(self, tour, tour_code):
             locations = tour['location']
@@ -240,10 +270,54 @@ class tourIndexer:
                 if loc:
                     self.indexes['location'][loc.strip().lower()].append(tour_code)
 
-                    #if loc in ['']
-            
+                    if loc.strip().lower() == "central":
+                        self.indexes['location']['hong kong island'].append(tour_code)
+
+                    if loc.strip().lower() == "tsim sha tsui":
+                        self.indexes['location']['kowloon'].append(tour_code)
+
+                    if loc.strip().lower() == "mong kok":
+                        self.indexes['location']['kowloon'].append(tour_code)
+
+                    if loc.strip().lower() == "sham shui po":
+                        self.indexes['location']['kowloon'].append(tour_code)
+
+                    if loc.strip().lower() == "sheung wan":
+                        self.indexes['location']['hong kong island'].append(tour_code) 
+
+                    if loc.strip().lower() == "wan chai":
+                        self.indexes['location']['hong kong island'].append(tour_code)
+
+                    if loc.strip().lower() == "causeway bay":
+                        self.indexes['location']['hong kong island'].append(tour_code)
+                    
+                    if loc.strip().lower() == "yau ma tei":
+                        self.indexes['location']['kowloon'].append(tour_code)
+
+                    if loc.strip().lower() == "sha tau kok":
+                        self.indexes['location']['new territories'].append(tour_code)
+
+                    if loc.strip().lower() == "tai po":
+                        self.indexes['location']['new territories'].append(tour_code)
+
+                    if loc.strip().lower() == "tsuen wan":
+                        self.indexes['location']['new territories'].append(tour_code)
+                    
+                    if loc.strip().lower() == "sai ying pun":
+                        self.indexes['location']['hong kong island'].append(tour_code)
+
+                    if loc.strip().lower() == "temple street":
+                        self.indexes['location']['kowloon'].append(tour_code)
+
+                    
 
 
+        def by_type(self, tour, tour_code):
+            type_private = tour['type_private']
+            type_edu = tour['type_edu']
 
-    
-   
+            if type_private:
+                self.indexes['type']['private' if type_private.lower() == 'special' else 'regular'].append(tour_code)
+
+            if type_edu:
+                self.indexes['type']['educational' if type_edu.lower() == 'educational' else 'non-educational'].append(tour_code)
