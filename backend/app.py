@@ -94,6 +94,10 @@ def process_data():
 
         # Placeholder processing logic
         processed_output = process_text(client_input, verbose=True)
+        
+        # Remove non-serializable 'doc' field
+        if 'doc' in processed_output:
+            del processed_output['doc']
 
         processed_requests.append({
             'input': client_input,

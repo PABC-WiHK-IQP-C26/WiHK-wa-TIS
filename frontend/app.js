@@ -11,46 +11,77 @@ function handleKeyDown(event) {
 }
 
 function processClientMessage() {
+  // Show loading message
+  document.getElementById('output-text').value = "Processing your request...";
+  
   // request data from google sheets NEEDS IMPLEMENTATION
   getTourInfo();
   // Get the value from the textarea
   var clientInput = document.getElementById('client-text-input').value;
   console.log("Sending client input to server");
+  
   fetch("/process",{
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({input: clientInput})}
-  );
-    
+    body: JSON.stringify({input: clientInput})
+  })
+  .then(response => {
+    console.log("Response status:", response.status);
+    return response.json();
+  })
+  .then(data => {
+    console.log("Processing response received:", data);
+    setOutputText(data);
+  })
+  .catch((error) => {
+    console.error('Error processing request:', error);
+    document.getElementById('output-text').value = `Error: ${error.message}\n\nPlease check the console for more details.`;
+  });
 
   console.log("Client Input:", clientInput);
-  // send to server or process as needed
   console.log("processClientMessage called");
-  setOutputText();
 }
 
-function setOutputText() {
-  const tourName1 = "Victoria Peak Sunset Tour"; 
-  const tourDate1 = "2026-01-25";
-  const tourTime1 = "5:00 PM";
-  const itinerary1 = "Peak tram ride, scenic views, dinner";
-  const tourFee1 = "$85";
-  const tourName2 = "Star Ferry Harbor Cruise";
-  const tourDate2 = "2026-01-26";
-  const tourTime2 = "7:00 PM";
-  const itinerary2 = "Harbor cruise, light show, refreshments";
-  const tourFee2 = "$45";
-  const tourName3 = "Star Ferry Harbor Cruise";
-  const tourDate3 = "2026-01-26";
-  const tourTime3 = "7:00 PM";
-  const itinerary3 = "Harbor cruise, light show, refreshments";
-  const tourFee3 = "$45";
+function setOutputText(data) {
+  console.log("setOutputText called with data:", data);
   
-  const output = `Dear Client, \nThank you for reaching out to us. We are happy to offer you our services as Walk in Hong Kong.\nBased on what you have given us as information, we recommend these tours.\nTour 1: \nName: ${tourName1} \nDate: ${tourDate1} \nTime: ${tourTime1} \nItinerary: ${itinerary1} \nFee: ${tourFee1} \n\nTour 2: \nName: ${tourName2} \nDate: ${tourDate2} \nTime: ${tourTime2} \nItinerary: ${itinerary2} \nFee: ${tourFee2} \n\nWe hope that these recommendations are to your liking.`;
-  document.getElementById('output-text').value = output;
-  console.log(output);
+  let output = `Dear Client,\n\nThank you for reaching out to us. We are happy to offer you our services as Walk in Hong Kong.\n\nBased on what you have given us as information, we recommend these tours:\n\n`;
+  
+  if (data && data.output && data.output.all_matches && data.output.all_matches.length > 0) {
+    // Use the actual matched tours from backend
+    const matches = data.output.all_matches.slice(0, 4); // Get up to 4 tours
+    console.log("Found matches:", matches.length);
+    
+    matches.forEach((tour, index) => {
+      output += `========================================\n`;
+      output += `TOUR ${index + 1}\n`;
+      output += `========================================\n`;
+      output += `Tour Code: ${tour.tour_code || 'N/A'}\n`;
+      output += `Name: ${tour.name || 'N/A'}\n\n`;
+      output += `Duration: ${tour.duration || 'N/A'}\n\n`;
+      output += `Overview:\n${tour.overview || 'N/A'}\n\n`;
+      output += `Itinerary:\n${tour.itinerary || 'N/A'}\n\n`;
+      output += `Locations Covered: ${(tour.locations && tour.locations.length > 0) ? tour.locations.join(', ') : 'N/A'}\n\n`;
+    });
+    
+    output += `========================================\n\n`;
+  } else {
+    console.log("No matches found in data");
+    output += `No matching tours found at this time. Please provide more details about your preferences.\n\n`;
+  }
+  
+  output += `We hope that these recommendations are to your liking. Please let us know if you have any questions or would like to proceed with booking.`;
+  
+  console.log("Setting output text to textarea");
+  const outputTextarea = document.getElementById('output-text');
+  if (outputTextarea) {
+    outputTextarea.value = output;
+    console.log("Output text set successfully");
+  } else {
+    console.error("output-text textarea not found!");
+  }
 }
 
 // function to get tour info from google sheets -- tied to getData.py
