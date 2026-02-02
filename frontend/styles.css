@@ -33,18 +33,7 @@ h2{
     font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
 
-#copy-button {
-    background-color: #61c3ab;
-    color: white;
-    alighn-content: center;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    font-family: Verdana, Geneva, Tahoma, sans-serif;
-}
-#format-as-email-button {
+#copy-button, #format-as-pdf-button, #copy-whatsapp-button,#copy-email-html-button, #format-as-email-button {
     background-color: #61c3ab;
     color: white;
     alighn-content: center;
@@ -56,11 +45,12 @@ h2{
     font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
 
-#submit-button:hover, #copy-button:hover, #format-as-email-button:hover {
+
+#submit-button:hover, #copy-whatsapp-button:hover,#copy-email-html-button:hover, #format-as-email-button:hover {
     background-color: #3e968c;
 }
 
-#submit-button:hover, #copy-button:hover, #format-as-email-button:hover {
+#submit-button:hover, #copy-whatsapp-button:hover,#copy-email-html-button:hover, #format-as-email-button:hover {
     background-color: #2c6e63;
 }
 
