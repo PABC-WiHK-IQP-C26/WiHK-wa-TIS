@@ -124,7 +124,7 @@ function formatAsEmail() {
   const tours = parseTourData(outputText);
   
   // Generate HTML content based on email.html template
-  const htmlContent = generateEmailHTML(tours);
+  const htmlContent = generateEmailHTML(tours, outputText);
   
   // Create a new window with the formatted content
   var emailWindow = window.open('', '_blank');
@@ -178,7 +178,7 @@ function parseTourData(outputText) {
   return tours;
 }
 
-function generateEmailHTML(tours) {
+function generateEmailHTML(tours, outputText) {
   let tourRows = '';
   
   tours.forEach((tour, index) => {
@@ -214,6 +214,14 @@ function generateEmailHTML(tours) {
       </tr>
     `;
   });
+  
+  // Add the raw output text section
+  const rawTextSection = outputText ? `
+    <div style="margin-top: 30px; padding: 20px; background-color: #f9f9f9; border-left: 4px solid #61c3ab;">
+      <h3 style="color: #ec0c74; margin-top: 0;">Complete Message Text:</h3>
+      <pre style="white-space: pre-wrap; font-family: Verdana, Geneva, Tahoma, sans-serif; font-size: 13px; line-height: 1.6; color: #333;">${outputText}</pre>
+    </div>
+  ` : '';
   
   return `
     <!DOCTYPE html>
@@ -296,7 +304,7 @@ function generateEmailHTML(tours) {
                 <td colspan="4" class="intro-text">
                   <strong>Dear Client,</strong><br><br>
                   Thank you for reaching out to us. We are happy to offer you our services as Walk in Hong Kong.<br><br>
-                  Based on what you have given us as information, we recommend these tours:
+                  Based on what you have given us as information, we found ${tours.length} matching tour${tours.length !== 1 ? 's' : ''} and recommend the following:
                 </td>
               </tr>
               ${tourRows}
@@ -309,6 +317,7 @@ function generateEmailHTML(tours) {
               </tr>
             </tbody>
           </table>
+          ${rawTextSection}
         </main>
         <footer class="page-footer">
           <h2>Walk in Hong Kong</h2>
@@ -326,7 +335,7 @@ function copyAsEmailHTML() {
   const tours = parseTourData(outputText);
   
   // Generate email-compatible HTML with inline styles
-  const emailHTML = generateInlineEmailHTML(tours);
+  const emailHTML = generateInlineEmailHTML(tours, outputText);
   
   // Copy to clipboard
   navigator.clipboard.writeText(emailHTML).then(() => {
@@ -337,7 +346,7 @@ function copyAsEmailHTML() {
   });
 }
 
-function generateInlineEmailHTML(tours) {
+function generateInlineEmailHTML(tours, outputText) {
   let tourRows = '';
   
   tours.forEach((tour, index) => {
@@ -395,7 +404,7 @@ function generateInlineEmailHTML(tours) {
           <td colspan="4" style="padding: 20px; background-color: #fafafa; line-height: 1.6; font-family: Verdana, Geneva, Tahoma, sans-serif;">
             <strong>Dear Client,</strong><br><br>
             Thank you for reaching out to us. We are happy to offer you our services as Walk in Hong Kong.<br><br>
-            Based on what you have given us as information, we recommend these tours:
+            Based on what you have given us as information, we found ${tours.length} matching tour${tours.length !== 1 ? 's' : ''} and recommend the following:
           </td>
         </tr>
         ${tourRows}
@@ -408,6 +417,13 @@ function generateInlineEmailHTML(tours) {
         </tr>
       </tbody>
     </table>
+    
+    ${outputText ? `
+    <div style="margin-top: 30px; padding: 20px; background-color: #f9f9f9; border-left: 4px solid #61c3ab; max-width: 800px; margin-left: auto; margin-right: auto;">
+      <h3 style="color: #ec0c74; margin-top: 0; font-family: Verdana, Geneva, Tahoma, sans-serif;">Complete Message Text:</h3>
+      <pre style="white-space: pre-wrap; font-family: Verdana, Geneva, Tahoma, sans-serif; font-size: 13px; line-height: 1.6; color: #333; margin: 0;">${escapeHTML(outputText)}</pre>
+    </div>
+    ` : ''}
   </div>
   
   <div style="background-color: #ec0c74; text-align: center; color: white; padding: 30px 20px; font-size: 18px; margin-top: 20px;">
