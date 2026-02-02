@@ -41,6 +41,14 @@
     font-weight: bold;
     font-size: 20px;
 }
+.intro {
+    font-weight: bold;
+    color:  #61c3ab;
+    padding: 12px 15px;
+    background-color: #fafafa;
+    width: 30%;
+    vertical-align: top;
+}
 
 .data-table tbody tr {
     border-bottom: 1px solid #e0e0e0;

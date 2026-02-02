@@ -15,8 +15,13 @@
     </div>
     <div>
       <h2>Message to paste:</h2>
-      <textarea id="output-text" name="output-text" readonly></textarea>
+      <textarea id="output-text" name="output-text" readonly></textarea><br><br>
       <!-- not showing output yet :( add a copy button-->
+      
+
+      <input type="button" id="copy-button" value="Copy Text" onclick="copyOutputText()">
+      <input type="button" id="format-as-email-button" value="download as email" onclick="formatAsEmail()">
+      
 
     </div>
     

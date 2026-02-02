@@ -104,3 +104,31 @@ function getTourInfo() {
     console.error('Error:', error);
   });
 }
+
+function copyOutputText() {
+
+  var outputTextarea = document.getElementById('output-text');
+  outputTextarea.select();
+  outputTextarea.setSelectionRange(0, 99999); // For mobile devices 
+  navigator.clipboard.writeText(outputTextarea.value);
+  alert("Copied the text: " + outputTextarea.value);
+
+
+}
+
+function formatAsEmail() {
+  var outputTextarea = document.getElementById('email-output-text');
+  var emailContent = 'Dear Client,\n\n' + outputTextarea.value + '\n\nBest regards,\nWalk in Hong Kong Team';
+  outputTextarea.value = emailContent;
+
+  // print to email.html
+  var emailWindow = window.open('formatting/email.html', '_blank');
+
+  emailWindow.onload = function() {
+    emailWindow.document.getElementById('email-output-text').innerText = emailContent;
+  }
+
+  alert("Formatted as Email.");
+  
+
+}

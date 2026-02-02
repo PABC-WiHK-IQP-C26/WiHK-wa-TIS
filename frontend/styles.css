@@ -33,11 +33,34 @@ h2{
     font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
 
-#submit-button:hover {
+#copy-button {
+    background-color: #61c3ab;
+    color: white;
+    alighn-content: center;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+#format-as-email-button {
+    background-color: #61c3ab;
+    color: white;
+    alighn-content: center;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+#submit-button:hover, #copy-button:hover, #format-as-email-button:hover {
     background-color: #3e968c;
 }
 
-#submit-button:active {
+#submit-button:hover, #copy-button:hover, #format-as-email-button:hover {
     background-color: #2c6e63;
 }
 
