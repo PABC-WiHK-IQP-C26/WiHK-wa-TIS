@@ -514,6 +514,11 @@ function updateGroupSizeDropdown() {
   const groupSizeDropdown = document.getElementById('group-size-dropdown');
   const priceDisplay = document.getElementById('price-display');
   
+  console.log('updateGroupSizeDropdown called');
+  console.log('Tour Code:', tourCode);
+  console.log('Tour Type:', tourType);
+  console.log('All Tours:', allTours);
+  
   if (!tourCode || !tourType || tourType === 'None') {
     groupSizeDropdown.innerHTML = '<option value="">Select tour and type first</option>';
     priceDisplay.textContent = 'Price: ';
@@ -522,6 +527,8 @@ function updateGroupSizeDropdown() {
   
   // Find the selected tour
   const selectedTour = allTours.find(tour => tour.tour_code === tourCode);
+  console.log('Selected Tour:', selectedTour);
+  
   if (!selectedTour) {
     console.error('Tour not found:', tourCode);
     return;
@@ -529,6 +536,7 @@ function updateGroupSizeDropdown() {
   
   // Get the appropriate prices based on tour type
   const prices = tourType === 'Educational' ? selectedTour.edu_prices : selectedTour.regular_prices;
+  console.log('Prices for', tourType, ':', prices);
   
   if (!prices || Object.keys(prices).length === 0) {
     groupSizeDropdown.innerHTML = '<option value="">No prices available</option>';
@@ -563,3 +571,4 @@ function updateGroupSizeDropdown() {
   // Reset price display
   priceDisplay.textContent = 'Price: ';
 }
+

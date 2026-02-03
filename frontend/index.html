@@ -9,7 +9,7 @@
   <body>
     <h1>Tour Info Scraper</h1>
     <div id="tis-entryField">
-      <label for="client-text"> <h2>Enter Client Message </h2></label>
+      <label for="client-text"> <h2>Enter Client Message: </h2></label>
       <textarea id="client-text-input" name="client-text-input" onkeydown="handleKeyDown(event)"></textarea><br><br> 
       <input type="button" id="submit-button" value="Generate Message" onclick="processClientMessage()">
     </div>
@@ -26,23 +26,23 @@
       <td>
         <h3>Use the following dropdowns to lookup price.</h3>
         <h2>Tour</h2>
-        <select name="Tours" id="tours-dropdown" onchange="show(this)">
+        <select name="Tours" id="tours-dropdown">
 
         </select>
 
-        <h3>Type</h3>
+        <h2>Type</h2>
         <select name="Tour Type" id="tour-type-dropdown">
           <option value="None">None</option>
           <option value="Educational">Educational</option>
           <option value="Private">Private</option>
         </select>
 
-        <h3>Group Size</h3>
+        <h2>Group Size</h2>
         <select name="Group Size" id="group-size-dropdown">
         
         </select>
 
-        <h3 id="price-display">Price: </h3>
+        <h2 id="price-display">Price: </h2>
 
       </td>
       
