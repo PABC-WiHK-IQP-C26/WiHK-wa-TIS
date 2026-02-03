@@ -144,6 +144,22 @@ class fetchTour:
                 print(f"Warning: Could not parse duration '{value}' as int: {str(e)}", flush=True)
                 return None
         
+        # Parse educational prices (Edu15 to Edu35)
+        edu_prices = {}
+        for i in range(15, 36):
+            col_name = f"Edu{i}"
+            price = safe_decimal(record.get(col_name))
+            if price:
+                edu_prices[i] = float(price)
+        
+        # Parse regular/private prices (1 to 25)
+        regular_prices = {}
+        for i in range(1, 26):
+            col_name = str(i)
+            price = safe_decimal(record.get(col_name))
+            if price:
+                regular_prices[i] = float(price)
+        
         tour = {
             'tour_code': safe_str(record.get("Tour Code")),
             'name_canto': safe_str(record.get("主題式導賞團")),
@@ -152,15 +168,12 @@ class fetchTour:
             'ov_eng': safe_str(record.get("Overview")),
             'dur_canto': safe_str(record.get("時長")),
             'dur_eng': safe_str(record.get("Duration")),
-            #'price': safe_decimal(record.get("")),  
             'itn_canto': safe_str(record.get("實體行程")),
             'itn_eng': safe_str(record.get("In-person Itinerary")), # needs to be split into individual locations -- split by regex -
             'type_private': safe_str(record.get("Tour Cat")), #Regular or Special
             'type_edu': safe_str(record.get("Tour Type")), #Types for Educational 
-            
-
-
-
+            'edu_prices': edu_prices,  # Dictionary of {group_size: price}
+            'regular_prices': regular_prices  # Dictionary of {group_size: price}
         }
 
         itinerary = tour['itn_eng']

@@ -20,7 +20,7 @@ function processClientMessage() {
   var clientInput = document.getElementById('client-text-input').value;
   console.log("Sending client input to server");
   
-  fetch("/process",{
+  fetch("http://127.0.0.1:5000/process",{
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -88,20 +88,39 @@ function setOutputText(data) {
 function getTourInfo() {
   console.log("getTourInfo called");
 
-  fetch("/grabSheet",{
+  fetch("http://127.0.0.1:5000/grabSheet",{
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({request: "getTourInfo"})
   })
-  .then(response => response.json())
-  .then(data => {
-    console.log("Tour Info Received:", data);
-    // Process the received data as needed
+  .then(response => {
+    console.log("Response status:", response.status);
+    console.log("Response ok:", response.ok);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.text(); // Get as text first to see what we're receiving
+  })
+  .then(text => {
+    console.log("Raw response:", text);
+    try {
+      const data = JSON.parse(text);
+      console.log("Tour Info Received:", data);
+      // Process the received data and populate dropdown
+      if (data && data.status === 'success' && data.data) {
+        populateTourDropdown(data.data);
+      } else if (data && data.status === 'error') {
+        console.error('Server error:', data.message);
+      }
+    } catch (e) {
+      console.error('Failed to parse JSON:', e);
+      console.error('Response was:', text);
+    }
   })
   .catch((error) => {
-    console.error('Error:', error);
+    console.error('Error fetching tour info:', error);
   });
 }
 
@@ -437,4 +456,110 @@ function escapeHTML(text) {
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
+}
+
+function populateTourDropdown(tours) {
+  const dropdown = document.getElementById('tours-dropdown');
+  if (!dropdown) {
+    console.error('Tour dropdown not found!');
+    return;
+  }
+  
+  // Store tours globally for later reference
+  allTours = tours;
+  
+  dropdown.innerHTML = ''; // Clear existing options
+  
+  // Add default option
+  const defaultOption = document.createElement('option');
+  defaultOption.value = '';
+  defaultOption.textContent = 'Select a tour...';
+  dropdown.appendChild(defaultOption);
+  
+  // Add tour options
+  tours.forEach(tour => {
+    const option = document.createElement('option');
+    option.value = tour.tour_code;
+    option.textContent = `${tour.tour_code} - ${tour.name_eng || tour.name}`;
+    dropdown.appendChild(option);
+  });
+  
+  console.log(`Populated dropdown with ${tours.length} tours`);
+}
+
+// Store all tours data globally for reference
+let allTours = [];
+
+// Load tours when the page loads
+window.addEventListener('DOMContentLoaded', function() {
+  console.log('Page loaded, fetching tours...');
+  getTourInfo();
+  
+  // Add event listeners for dropdowns
+  const tourDropdown = document.getElementById('tours-dropdown');
+  const tourTypeDropdown = document.getElementById('tour-type-dropdown');
+  
+  if (tourDropdown) {
+    tourDropdown.addEventListener('change', updateGroupSizeDropdown);
+  }
+  
+  if (tourTypeDropdown) {
+    tourTypeDropdown.addEventListener('change', updateGroupSizeDropdown);
+  }
+});
+
+function updateGroupSizeDropdown() {
+  const tourCode = document.getElementById('tours-dropdown').value;
+  const tourType = document.getElementById('tour-type-dropdown').value;
+  const groupSizeDropdown = document.getElementById('group-size-dropdown');
+  const priceDisplay = document.getElementById('price-display');
+  
+  if (!tourCode || !tourType || tourType === 'None') {
+    groupSizeDropdown.innerHTML = '<option value="">Select tour and type first</option>';
+    priceDisplay.textContent = 'Price: ';
+    return;
+  }
+  
+  // Find the selected tour
+  const selectedTour = allTours.find(tour => tour.tour_code === tourCode);
+  if (!selectedTour) {
+    console.error('Tour not found:', tourCode);
+    return;
+  }
+  
+  // Get the appropriate prices based on tour type
+  const prices = tourType === 'Educational' ? selectedTour.edu_prices : selectedTour.regular_prices;
+  
+  if (!prices || Object.keys(prices).length === 0) {
+    groupSizeDropdown.innerHTML = '<option value="">No prices available</option>';
+    priceDisplay.textContent = 'Price: N/A';
+    return;
+  }
+  
+  // Populate group size dropdown with prices
+  groupSizeDropdown.innerHTML = '<option value="">Select group size...</option>';
+  
+  // Sort by group size
+  const sortedSizes = Object.keys(prices).sort((a, b) => parseInt(a) - parseInt(b));
+  
+  sortedSizes.forEach(size => {
+    const option = document.createElement('option');
+    option.value = size;
+    option.dataset.price = prices[size];
+    option.textContent = `${size} people - HK$${prices[size].toFixed(2)}`;
+    groupSizeDropdown.appendChild(option);
+  });
+  
+  // Add event listener to update price display
+  groupSizeDropdown.addEventListener('change', function() {
+    const selectedOption = this.options[this.selectedIndex];
+    if (selectedOption.dataset.price) {
+      priceDisplay.textContent = `Price: HK$${parseFloat(selectedOption.dataset.price).toFixed(2)}`;
+    } else {
+      priceDisplay.textContent = 'Price: ';
+    }
+  });
+  
+  // Reset price display
+  priceDisplay.textContent = 'Price: ';
 }

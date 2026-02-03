@@ -14,14 +14,38 @@
       <input type="button" id="submit-button" value="Generate Message" onclick="processClientMessage()">
     </div>
     <div>
+      <td>
       <h2>Message to paste:</h2>
       <textarea id="output-text" name="output-text" readonly></textarea><br><br>
-      <!-- not showing output yet :( add a copy button-->
-      
+
 
       <input type="button" id="copy-whatsapp-button" value="Copy for WhatsApp" onclick="copyOutputText()">
       <input type="button" id="copy-email-html-button" value="Copy for Email" onclick="copyAsEmailHTML()">
       <input type="button" id="format-as-email-button" value="Download as PDF" onclick="formatAsEmail()">
+      </td>
+      <td>
+        <h3>Use the following dropdowns to lookup price.</h3>
+        <h2>Tour</h2>
+        <select name="Tours" id="tours-dropdown" onchange="show(this)">
+
+        </select>
+
+        <h3>Type</h3>
+        <select name="Tour Type" id="tour-type-dropdown">
+          <option value="None">None</option>
+          <option value="Educational">Educational</option>
+          <option value="Private">Private</option>
+        </select>
+
+        <h3>Group Size</h3>
+        <select name="Group Size" id="group-size-dropdown">
+        
+        </select>
+
+        <h3 id="price-display">Price: </h3>
+
+      </td>
+      
       
 
     </div>
