@@ -10,6 +10,10 @@ function handleKeyDown(event) {
   }
 }
 
+// Store all tours data globally for reference
+let allTours = [];
+let matchedTours = []; // Store tours matched from backend processing
+
 function processClientMessage() {
   // Show loading message
   document.getElementById('output-text').value = "Processing your request...";
@@ -54,6 +58,16 @@ function setOutputText(data) {
     const matches = data.output.all_matches.slice(0, 4); // Get up to 4 tours
     console.log("Found matches:", matches.length);
     
+    // Store matched tours globally for email generation
+    matchedTours = matches.map(tour => ({
+      code: tour.tour_code || 'N/A',
+      name: tour.name || 'N/A',
+      duration: tour.duration || 'N/A',
+      overview: tour.overview || 'N/A',
+      itinerary: tour.itinerary || 'N/A',
+      locations: (tour.locations && tour.locations.length > 0) ? tour.locations.join(', ') : 'N/A'
+    }));
+    
     matches.forEach((tour, index) => {
       output += `========================================\n`;
       output += `TOUR ${index + 1}\n`;
@@ -69,6 +83,7 @@ function setOutputText(data) {
     output += `========================================\n\n`;
   } else {
     console.log("No matches found in data");
+    matchedTours = []; // Clear matched tours
     output += `No matching tours found at this time. Please provide more details about your preferences.\n\n`;
   }
   
@@ -136,14 +151,21 @@ function copyOutputText() {
 }
 
 function formatAsEmail() {
-  // Get the output data from the textarea
-  var outputText = document.getElementById('output-text').value;
+  // Use the stored matched tours directly
+  const tours = matchedTours.length > 0 ? matchedTours : [];
   
-  // Parse the tour data to extract structured information
-  const tours = parseTourData(outputText);
+  console.log('Using matched tours for PDF:', tours.length);
+  console.log('Matched tours data:', matchedTours);
+  
+  if (tours.length === 0) {
+    alert('No tours to display. Please generate tour recommendations first by processing a client message.');
+    return;
+  }
   
   // Generate HTML content based on email.html template
-  const htmlContent = generateEmailHTML(tours, outputText);
+  const htmlContent = generateEmailHTML(tours);
+  
+  console.log('Generated HTML length:', htmlContent.length);
   
   // Create a new window with the formatted content
   var emailWindow = window.open('', '_blank');
@@ -156,91 +178,50 @@ function formatAsEmail() {
   }, 500);
 }
 
-function parseTourData(outputText) {
-  const tours = [];
-  const tourSections = outputText.split('========================================');
-  
-  tourSections.forEach(section => {
-    if (section.includes('TOUR')) {
-      const tour = {};
-      
-      // Extract tour code
-      const codeMatch = section.match(/Tour Code:\s*(.+?)\n/);
-      if (codeMatch) tour.code = codeMatch[1].trim();
-      
-      // Extract name
-      const nameMatch = section.match(/Name:\s*(.+?)\n/);
-      if (nameMatch) tour.name = nameMatch[1].trim();
-      
-      // Extract duration
-      const durationMatch = section.match(/Duration:\s*(.+?)\n/);
-      if (durationMatch) tour.duration = durationMatch[1].trim();
-      
-      // Extract overview
-      const overviewMatch = section.match(/Overview:\n([\s\S]*?)(?=\n\nItinerary:|\n\nLocations Covered:|$)/);
-      if (overviewMatch) tour.overview = overviewMatch[1].trim();
-      
-      // Extract itinerary
-      const itineraryMatch = section.match(/Itinerary:\n([\s\S]*?)(?=\n\nLocations Covered:|$)/);
-      if (itineraryMatch) tour.itinerary = itineraryMatch[1].trim();
-      
-      // Extract locations
-      const locationsMatch = section.match(/Locations Covered:\s*(.+?)(?=\n|$)/);
-      if (locationsMatch) tour.locations = locationsMatch[1].trim();
-      
-      if (tour.code || tour.name) {
-        tours.push(tour);
-      }
-    }
-  });
-  
-  return tours;
-}
-
-function generateEmailHTML(tours, outputText) {
-  let tourRows = '';
+function generateEmailHTML(tours) {
+  let tourCards = '';
   
   tours.forEach((tour, index) => {
-    tourRows += `
-      <tr>
-        <td colspan="4" style="background-color: #f0f0f0; padding: 15px; font-weight: bold; color: #ec0c74; border-top: 2px solid #61c3ab;">
-          TOUR ${index + 1}
-        </td>
-      </tr>
-      <tr>
-        <td style="font-weight: bold; color: #61c3ab; padding: 10px; width: 20%; vertical-align: top;">Tour Code:</td>
-        <td colspan="3" style="padding: 10px;">${tour.code || 'N/A'}</td>
-      </tr>
-      <tr>
-        <td style="font-weight: bold; color: #61c3ab; padding: 10px; vertical-align: top;">Name:</td>
-        <td colspan="3" style="padding: 10px;">${tour.name || 'N/A'}</td>
-      </tr>
-      <tr>
-        <td style="font-weight: bold; color: #61c3ab; padding: 10px; vertical-align: top;">Duration:</td>
-        <td colspan="3" style="padding: 10px;">${tour.duration || 'N/A'}</td>
-      </tr>
-      <tr>
-        <td style="font-weight: bold; color: #61c3ab; padding: 10px; vertical-align: top;">Overview:</td>
-        <td colspan="3" style="padding: 10px; white-space: pre-wrap;">${tour.overview || 'N/A'}</td>
-      </tr>
-      <tr>
-        <td style="font-weight: bold; color: #61c3ab; padding: 10px; vertical-align: top;">Itinerary:</td>
-        <td colspan="3" style="padding: 10px; white-space: pre-wrap;">${tour.itinerary || 'N/A'}</td>
-      </tr>
-      <tr>
-        <td style="font-weight: bold; color: #61c3ab; padding: 10px; vertical-align: top;">Locations:</td>
-        <td colspan="3" style="padding: 10px;">${tour.locations || 'N/A'}</td>
-      </tr>
+    tourCards += `
+    <div style="margin-bottom: 25px; border: 2px solid #61c3ab; border-radius: 8px; overflow: hidden; page-break-inside: avoid;">
+      <div style="background: linear-gradient(135deg, #61c3ab 0%, #4fb39a 100%); padding: 15px 20px; color: white;">
+        <h3 style="margin: 0; font-size: 20px;">
+          <span style="background-color: rgba(255,255,255,0.2); padding: 5px 12px; border-radius: 20px; margin-right: 10px; font-size: 14px;">${tour.code || 'N/A'}</span>
+          ${tour.name || 'Tour Name'}
+        </h3>
+      </div>
+      
+      <div style="padding: 20px; background-color: #ffffff;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 12px 0; border-bottom: 1px solid #f0f0f0;">
+              <span style="display: inline-block; width: 100px; color: #61c3ab; font-weight: bold;">⏱️ Duration:</span>
+              <span>${tour.duration || 'N/A'}</span>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 12px 0; border-bottom: 1px solid #f0f0f0;">
+              <span style="display: inline-block; width: 100px; color: #61c3ab; font-weight: bold;">📍 Locations:</span>
+              <span>${tour.locations || 'N/A'}</span>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 12px 0;">
+              <div style="color: #61c3ab; font-weight: bold; margin-bottom: 8px;">📋 Overview:</div>
+              <div style="color: #555; line-height: 1.8; white-space: pre-wrap;">${tour.overview || 'N/A'}</div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 12px 0; border-top: 1px solid #f0f0f0;">
+              <div style="color: #61c3ab; font-weight: bold; margin-bottom: 8px;">🗺️ Itinerary:</div>
+              <div style="color: #555; line-height: 1.8; white-space: pre-wrap;">${tour.itinerary || 'N/A'}</div>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
     `;
   });
-  
-  // Add the raw output text section
-  const rawTextSection = outputText ? `
-    <div style="margin-top: 30px; padding: 20px; background-color: #f9f9f9; border-left: 4px solid #61c3ab;">
-      <h3 style="color: #ec0c74; margin-top: 0;">Complete Message Text:</h3>
-      <pre style="white-space: pre-wrap; font-family: Verdana, Geneva, Tahoma, sans-serif; font-size: 13px; line-height: 1.6; color: #333;">${outputText}</pre>
-    </div>
-  ` : '';
   
   return `
     <!DOCTYPE html>
@@ -253,93 +234,95 @@ function generateEmailHTML(tours, outputText) {
             font-family: Verdana, Geneva, Tahoma, sans-serif;
             margin: 0;
             padding: 0;
+            background-color: #f5f5f5;
           }
           .page-header {
-            background-color: #ec0c74;
+            background: linear-gradient(135deg, #ec0c74 0%, #d10a65 100%);
             text-align: center;
             color: white;
-            padding: 50px;
-            font-size: 20px;
+            padding: 40px 20px;
+          }
+          .page-header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+          }
+          .page-header p {
+            margin: 10px 0 0 0;
+            font-size: 16px;
+            opacity: 0.95;
           }
           .page-footer {
-            background-color: #ec0c74;
+            background-color: #2d2d2d;
             text-align: center;
             color: white;
-            padding: 50px;
-            font-size: 20px;
+            padding: 30px 20px;
             margin-top: 30px;
           }
+          .page-footer h2 {
+            margin: 0 0 10px 0;
+            font-size: 22px;
+          }
+          .page-footer p {
+            margin: 0;
+            font-size: 13px;
+            opacity: 0.8;
+          }
           .content {
+            padding: 30px 20px;
+            max-width: 900px;
+            margin: 0 auto;
+          }
+          .intro-box, .closing-box {
+            background-color: white;
             padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            margin-bottom: 25px;
           }
-          .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: auto;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+          .intro-box p, .closing-box p {
+            color: #555;
+            line-height: 1.8;
+            font-size: 15px;
+            margin: 0 0 15px 0;
           }
-          .data-table thead {
-            background-color: #61c3ab;
-          }
-          .data-table thead th {
-            color: white;
-            padding: 12px;
-            text-align: center;
-            font-weight: bold;
-            font-size: 20px;
-          }
-          .data-table tbody td {
-            padding: 10px;
-          }
-          .intro-text {
-            padding: 20px;
-            background-color: #fafafa;
-            line-height: 1.6;
+          .intro-box p:last-child, .closing-box p:last-child {
+            margin-bottom: 0;
           }
           @media print {
+            body {
+              background-color: white;
+            }
             .page-header, .page-footer {
               -webkit-print-color-adjust: exact;
               print-color-adjust: exact;
-            }
-            body {
-              margin: 0;
             }
           }
         </style>
       </head>
       <body>
         <header class="page-header">
-          <h2>Walk in Hong Kong - Tour Recommendations</h2>
+          <h1>Walk in Hong Kong</h1>
+          <p>Tour Recommendations</p>
         </header>
         <main class="content">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th colspan="4">Tour Recommendations</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td colspan="4" class="intro-text">
-                  <strong>Dear Client,</strong><br><br>
-                  Thank you for reaching out to us. We are happy to offer you our services as Walk in Hong Kong.<br><br>
-                  Based on what you have given us as information, we found ${tours.length} matching tour${tours.length !== 1 ? 's' : ''} and recommend the following:
-                </td>
-              </tr>
-              ${tourRows}
-              <tr>
-                <td colspan="4" class="intro-text">
-                  We hope that these recommendations are to your liking. Please let us know if you have any questions or would like to proceed with booking.<br><br>
-                  <strong>Best regards,<br>
-                  Walk in Hong Kong Team</strong>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          ${rawTextSection}
+          <div class="intro-box">
+            <p><strong style="color: #ec0c74;">Dear Client,</strong></p>
+            <p>Thank you for reaching out to us. We are happy to offer you our services as Walk in Hong Kong.</p>
+            <p>Based on the information you have provided, we found <strong style="color: #61c3ab;">${tours.length} matching tour${tours.length !== 1 ? 's' : ''}</strong> and recommend the following:</p>
+          </div>
+          
+          ${tourCards}
+          
+          <div class="closing-box">
+            <p>We hope that these recommendations are to your liking. Please let us know if you have any questions or would like to proceed with booking.</p>
+            <p><strong>Best regards,</strong><br>
+            <span style="color: #ec0c74; font-weight: 600;">Walk in Hong Kong Team</span></p>
+          </div>
         </main>
         <footer class="page-footer">
           <h2>Walk in Hong Kong</h2>
+          <p>Discover Hong Kong with us</p>
         </footer>
       </body>
     </html>
@@ -347,14 +330,19 @@ function generateEmailHTML(tours, outputText) {
 }
 
 function copyAsEmailHTML() {
-  // Get the output data from the textarea
-  var outputText = document.getElementById('output-text').value;
+  // Use the stored matched tours directly
+  const tours = matchedTours.length > 0 ? matchedTours : [];
   
-  // Parse the tour data to extract structured information
-  const tours = parseTourData(outputText);
+  console.log('Using matched tours for email HTML:', tours.length);
+  console.log('Matched tours data:', matchedTours);
+  
+  if (tours.length === 0) {
+    alert('No tours to display. Please generate tour recommendations first by processing a client message.');
+    return;
+  }
   
   // Generate email-compatible HTML with inline styles
-  const emailHTML = generateInlineEmailHTML(tours, outputText);
+  const emailHTML = generateInlineEmailHTML(tours);
   
   // Copy to clipboard
   navigator.clipboard.writeText(emailHTML).then(() => {
@@ -365,88 +353,96 @@ function copyAsEmailHTML() {
   });
 }
 
-function generateInlineEmailHTML(tours, outputText) {
-  let tourRows = '';
+function generateInlineEmailHTML(tours) {
+  let tourCards = '';
   
   tours.forEach((tour, index) => {
-    tourRows += `
-      <tr>
-        <td colspan="4" style="background-color: #f0f0f0; padding: 15px; font-weight: bold; color: #ec0c74; border-top: 2px solid #61c3ab; font-family: Verdana, Geneva, Tahoma, sans-serif;">
-          TOUR ${index + 1}
-        </td>
-      </tr>
-      <tr>
-        <td style="font-weight: bold; color: #61c3ab; padding: 10px; width: 20%; vertical-align: top; font-family: Verdana, Geneva, Tahoma, sans-serif;">Tour Code:</td>
-        <td colspan="3" style="padding: 10px; font-family: Verdana, Geneva, Tahoma, sans-serif;">${escapeHTML(tour.code || 'N/A')}</td>
-      </tr>
-      <tr>
-        <td style="font-weight: bold; color: #61c3ab; padding: 10px; vertical-align: top; font-family: Verdana, Geneva, Tahoma, sans-serif;">Name:</td>
-        <td colspan="3" style="padding: 10px; font-family: Verdana, Geneva, Tahoma, sans-serif;">${escapeHTML(tour.name || 'N/A')}</td>
-      </tr>
-      <tr>
-        <td style="font-weight: bold; color: #61c3ab; padding: 10px; vertical-align: top; font-family: Verdana, Geneva, Tahoma, sans-serif;">Duration:</td>
-        <td colspan="3" style="padding: 10px; font-family: Verdana, Geneva, Tahoma, sans-serif;">${escapeHTML(tour.duration || 'N/A')}</td>
-      </tr>
-      <tr>
-        <td style="font-weight: bold; color: #61c3ab; padding: 10px; vertical-align: top; font-family: Verdana, Geneva, Tahoma, sans-serif;">Overview:</td>
-        <td colspan="3" style="padding: 10px; white-space: pre-wrap; font-family: Verdana, Geneva, Tahoma, sans-serif;">${escapeHTML(tour.overview || 'N/A')}</td>
-      </tr>
-      <tr>
-        <td style="font-weight: bold; color: #61c3ab; padding: 10px; vertical-align: top; font-family: Verdana, Geneva, Tahoma, sans-serif;">Itinerary:</td>
-        <td colspan="3" style="padding: 10px; white-space: pre-wrap; font-family: Verdana, Geneva, Tahoma, sans-serif;">${escapeHTML(tour.itinerary || 'N/A')}</td>
-      </tr>
-      <tr>
-        <td style="font-weight: bold; color: #61c3ab; padding: 10px; vertical-align: top; font-family: Verdana, Geneva, Tahoma, sans-serif;">Locations:</td>
-        <td colspan="3" style="padding: 10px; font-family: Verdana, Geneva, Tahoma, sans-serif;">${escapeHTML(tour.locations || 'N/A')}</td>
-      </tr>
+    tourCards += `
+    <div style="margin-bottom: 25px; border: 2px solid #61c3ab; border-radius: 8px; overflow: hidden; max-width: 800px; margin-left: auto; margin-right: auto; margin-bottom: 25px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
+      <div style="background: linear-gradient(135deg, #61c3ab 0%, #4fb39a 100%); padding: 15px 20px; color: white;">
+        <h3 style="margin: 0; font-size: 20px; font-family: Verdana, Geneva, Tahoma, sans-serif;">
+          <span style="background-color: rgba(255,255,255,0.2); padding: 5px 12px; border-radius: 20px; margin-right: 10px; font-size: 14px;">${escapeHTML(tour.code || 'N/A')}</span>
+          ${escapeHTML(tour.name || 'Tour Name')}
+        </h3>
+      </div>
+      
+      <div style="padding: 20px; background-color: #ffffff;">
+        <table style="width: 100%; border-collapse: collapse;" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="padding: 12px 0; border-bottom: 1px solid #f0f0f0;">
+              <div style="font-family: Verdana, Geneva, Tahoma, sans-serif;">
+                <span style="display: inline-block; width: 100px; color: #61c3ab; font-weight: bold; vertical-align: top;">⏱️ Duration:</span>
+                <span style="color: #333;">${escapeHTML(tour.duration || 'N/A')}</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 12px 0; border-bottom: 1px solid #f0f0f0;">
+              <div style="font-family: Verdana, Geneva, Tahoma, sans-serif;">
+                <span style="display: inline-block; width: 100px; color: #61c3ab; font-weight: bold; vertical-align: top;">📍 Locations:</span>
+                <span style="color: #333;">${escapeHTML(tour.locations || 'N/A')}</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 12px 0;">
+              <div style="font-family: Verdana, Geneva, Tahoma, sans-serif;">
+                <div style="color: #61c3ab; font-weight: bold; margin-bottom: 8px;">📋 Overview:</div>
+                <div style="color: #555; line-height: 1.8; white-space: pre-wrap;">${escapeHTML(tour.overview || 'N/A')}</div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 12px 0; border-top: 1px solid #f0f0f0;">
+              <div style="font-family: Verdana, Geneva, Tahoma, sans-serif;">
+                <div style="color: #61c3ab; font-weight: bold; margin-bottom: 8px;">🗺️ Itinerary:</div>
+                <div style="color: #555; line-height: 1.8; white-space: pre-wrap;">${escapeHTML(tour.itinerary || 'N/A')}</div>
+              </div>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
     `;
   });
   
   // Return email-compatible HTML with all inline styles (no external CSS)
   return `
-<div style="font-family: Verdana, Geneva, Tahoma, sans-serif; margin: 0; padding: 0;">
-  <div style="background-color: #ec0c74; text-align: center; color: white; padding: 30px 20px; font-size: 18px;">
-    <h2 style="margin: 0; color: white; font-size: 24px;">Walk in Hong Kong - Tour Recommendations</h2>
+<div style="font-family: Verdana, Geneva, Tahoma, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5;">
+  <div style="background: linear-gradient(135deg, #ec0c74 0%, #d10a65 100%); text-align: center; color: white; padding: 40px 20px;">
+    <h1 style="margin: 0; color: white; font-size: 28px; font-weight: 600;">Walk in Hong Kong</h1>
+    <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.95;">Tour Recommendations</p>
   </div>
   
-  <div style="padding: 20px;">
-    <table style="width: 100%; border-collapse: collapse; max-width: 800px; margin: 0 auto; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);" cellpadding="0" cellspacing="0">
-      <thead>
-        <tr>
-          <th colspan="4" style="background-color: #61c3ab; color: white; padding: 12px; text-align: center; font-weight: bold; font-size: 18px; font-family: Verdana, Geneva, Tahoma, sans-serif;">
-            Tour Recommendations
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td colspan="4" style="padding: 20px; background-color: #fafafa; line-height: 1.6; font-family: Verdana, Geneva, Tahoma, sans-serif;">
-            <strong>Dear Client,</strong><br><br>
-            Thank you for reaching out to us. We are happy to offer you our services as Walk in Hong Kong.<br><br>
-            Based on what you have given us as information, we found ${tours.length} matching tour${tours.length !== 1 ? 's' : ''} and recommend the following:
-          </td>
-        </tr>
-        ${tourRows}
-        <tr>
-          <td colspan="4" style="padding: 20px; background-color: #fafafa; line-height: 1.6; font-family: Verdana, Geneva, Tahoma, sans-serif;">
-            We hope that these recommendations are to your liking. Please let us know if you have any questions or would like to proceed with booking.<br><br>
-            <strong>Best regards,<br>
-            Walk in Hong Kong Team</strong>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    
-    ${outputText ? `
-    <div style="margin-top: 30px; padding: 20px; background-color: #f9f9f9; border-left: 4px solid #61c3ab; max-width: 800px; margin-left: auto; margin-right: auto;">
-      <h3 style="color: #ec0c74; margin-top: 0; font-family: Verdana, Geneva, Tahoma, sans-serif;">Complete Message Text:</h3>
-      <pre style="white-space: pre-wrap; font-family: Verdana, Geneva, Tahoma, sans-serif; font-size: 13px; line-height: 1.6; color: #333; margin: 0;">${escapeHTML(outputText)}</pre>
+  <div style="padding: 30px 20px;">
+    <div style="max-width: 800px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08); margin-bottom: 25px;">
+      <p style="color: #333; line-height: 1.8; font-size: 15px; margin: 0 0 15px 0;">
+        <strong style="color: #ec0c74;">Dear Client,</strong>
+      </p>
+      <p style="color: #555; line-height: 1.8; font-size: 15px; margin: 0 0 15px 0;">
+        Thank you for reaching out to us. We are happy to offer you our services as Walk in Hong Kong.
+      </p>
+      <p style="color: #555; line-height: 1.8; font-size: 15px; margin: 0;">
+        Based on the information you have provided, we found <strong style="color: #61c3ab;">${tours.length} matching tour${tours.length !== 1 ? 's' : ''}</strong> and recommend the following:
+      </p>
     </div>
-    ` : ''}
+    
+    ${tourCards}
+    
+    <div style="max-width: 800px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);">
+      <p style="color: #555; line-height: 1.8; font-size: 15px; margin: 0 0 20px 0;">
+        We hope that these recommendations are to your liking. Please let us know if you have any questions or would like to proceed with booking.
+      </p>
+      <p style="color: #333; line-height: 1.8; font-size: 15px; margin: 0;">
+        <strong>Best regards,</strong><br>
+        <span style="color: #ec0c74; font-weight: 600;">Walk in Hong Kong Team</span>
+      </p>
+    </div>
   </div>
   
-  <div style="background-color: #ec0c74; text-align: center; color: white; padding: 30px 20px; font-size: 18px; margin-top: 20px;">
-    <h2 style="margin: 0; color: white; font-size: 22px;">Walk in Hong Kong</h2>
+  <div style="background-color: #2d2d2d; text-align: center; color: white; padding: 30px 20px;">
+    <h2 style="margin: 0 0 10px 0; color: white; font-size: 22px;">Walk in Hong Kong</h2>
+    <p style="margin: 0; font-size: 13px; opacity: 0.8;">Discover Hong Kong with us</p>
   </div>
 </div>
   `;
@@ -486,9 +482,6 @@ function populateTourDropdown(tours) {
   
   console.log(`Populated dropdown with ${tours.length} tours`);
 }
-
-// Store all tours data globally for reference
-let allTours = [];
 
 // Load tours when the page loads
 window.addEventListener('DOMContentLoaded', function() {
@@ -531,7 +524,27 @@ function updateGroupSizeDropdown() {
   
   if (!selectedTour) {
     console.error('Tour not found:', tourCode);
+    groupSizeDropdown.innerHTML = '<option value="">Tour not found</option>';
     return;
+  }
+  
+  // Validate tour type matches the tour's available types
+  if (tourType === 'Educational') {
+    // Check if tour has educational pricing or type_edu is "Educational"
+    if (!selectedTour.edu_prices || Object.keys(selectedTour.edu_prices).length === 0) {
+      groupSizeDropdown.innerHTML = '<option value="">This tour does not offer Educational pricing</option>';
+      priceDisplay.textContent = 'Price: N/A';
+      console.warn('Tour does not have educational prices');
+      return;
+    }
+  } else if (tourType === 'Private') {
+    // Check if tour has private/regular pricing
+    if (!selectedTour.regular_prices || Object.keys(selectedTour.regular_prices).length === 0) {
+      groupSizeDropdown.innerHTML = '<option value="">This tour does not offer Private pricing</option>';
+      priceDisplay.textContent = 'Price: N/A';
+      console.warn('Tour does not have private/regular prices');
+      return;
+    }
   }
   
   // Get the appropriate prices based on tour type
@@ -539,7 +552,7 @@ function updateGroupSizeDropdown() {
   console.log('Prices for', tourType, ':', prices);
   
   if (!prices || Object.keys(prices).length === 0) {
-    groupSizeDropdown.innerHTML = '<option value="">No prices available</option>';
+    groupSizeDropdown.innerHTML = '<option value="">No prices available for this type</option>';
     priceDisplay.textContent = 'Price: N/A';
     return;
   }

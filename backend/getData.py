@@ -129,7 +129,11 @@ class fetchTour:
             if not value:
                 return None
             try:
-                return Decimal(str(value))
+                # Remove commas from numbers like "4,600"
+                cleaned_value = str(value).replace(',', '').strip()
+                if not cleaned_value or cleaned_value == '':
+                    return None
+                return Decimal(cleaned_value)
             except Exception as e:
                 print(f"Warning: Could not parse price '{value}' as Decimal: {str(e)}", flush=True)
                 return None
