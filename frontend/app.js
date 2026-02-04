@@ -353,16 +353,52 @@ function copyAsEmailHTML() {
   });
 }
 
+function downloadAsEmailHTML() {
+  // Use the stored matched tours directly
+  const tours = matchedTours.length > 0 ? matchedTours : [];
+  
+  console.log('Using matched tours for email HTML download:', tours.length);
+  console.log('Matched tours data:', matchedTours);
+  
+  if (tours.length === 0) {
+    alert('No tours to display. Please generate tour recommendations first by processing a client message.');
+    return;
+  }
+  
+  // Generate email-compatible HTML with inline styles
+  const emailHTML = generateInlineEmailHTML(tours);
+  
+  // Create a blob from the HTML content
+  const blob = new Blob([emailHTML], { type: 'text/html;charset=utf-8;' });
+  
+  // Create a temporary download link
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  
+  link.setAttribute('href', url);
+  link.setAttribute('download', `email_recommendations_${new Date().getTime()}.html`);
+  link.style.visibility = 'hidden';
+  
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  // Clean up the URL object
+  URL.revokeObjectURL(url);
+  
+  alert("Email HTML downloaded successfully!\n\nYou can now open this file in your email client to embed the formatted email.");
+}
+
 function generateInlineEmailHTML(tours) {
   let tourCards = '';
   
   tours.forEach((tour, index) => {
     tourCards += `
     <div style="margin-bottom: 25px; border: 2px solid #61c3ab; border-radius: 8px; overflow: hidden; max-width: 800px; margin-left: auto; margin-right: auto; margin-bottom: 25px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
-      <div style="background: linear-gradient(135deg, #61c3ab 0%, #4fb39a 100%); padding: 15px 20px; color: white;">
+      <div style="background-color: #61c3ab 100%; padding: 15px 20px; color: white;">
         <h3 style="margin: 0; font-size: 20px; font-family: Verdana, Geneva, Tahoma, sans-serif;">
-          <span style="background-color: rgba(255,255,255,0.2); padding: 5px 12px; border-radius: 20px; margin-right: 10px; font-size: 14px;">${escapeHTML(tour.code || 'N/A')}</span>
-          ${escapeHTML(tour.name || 'Tour Name')}
+          <span style="background-color: #4fb39a; padding: 5px 12px; border-radius: 20px; margin-right: 10px; font-size: 14px;">${escapeHTML(tour.code || 'N/A')}</span>
+          <span style="color: #4fb39a;">${escapeHTML(tour.name || 'Tour Name')}</span>
         </h3>
       </div>
       
@@ -409,9 +445,9 @@ function generateInlineEmailHTML(tours) {
   // Return email-compatible HTML with all inline styles (no external CSS)
   return `
 <div style="font-family: Verdana, Geneva, Tahoma, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5;">
-  <div style="background: linear-gradient(135deg, #ec0c74 0%, #d10a65 100%); text-align: center; color: white; padding: 40px 20px;">
+  <div style="background-color: #ec0c74; text-align: center; color: white; padding: 40px 20px;">
     <h1 style="margin: 0; color: white; font-size: 28px; font-weight: 600;">Walk in Hong Kong</h1>
-    <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.95;">Tour Recommendations</p>
+    <p style="margin: 10px 0 0 0; font-size: 16px; color: rgba(255, 255, 255, 0.9);">Tour Recommendations</p>
   </div>
   
   <div style="padding: 30px 20px;">
@@ -442,7 +478,7 @@ function generateInlineEmailHTML(tours) {
   
   <div style="background-color: #2d2d2d; text-align: center; color: white; padding: 30px 20px;">
     <h2 style="margin: 0 0 10px 0; color: white; font-size: 22px;">Walk in Hong Kong</h2>
-    <p style="margin: 0; font-size: 13px; opacity: 0.8;">Discover Hong Kong with us</p>
+    <p style="margin: 0; font-size: 13px; color: rgba(255, 255, 255, 0.8);">Discover Hong Kong with us</p>
   </div>
 </div>
   `;
