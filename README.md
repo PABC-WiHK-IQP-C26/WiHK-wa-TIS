@@ -33,3 +33,4 @@ Running:
 ````
 python backend\app.py
 ````
+For safety of data, only users with the necessary .json key files can run this program.
