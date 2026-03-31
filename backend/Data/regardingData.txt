@@ -7,3 +7,5 @@ For key.json file
 5. Click Keys. The Google Cloud console displays a list of keys for the service account.
 7. Download this key as key.json.
 8. Place in this folder
+
+Having this key.json file grants access into the spreadsheet through the gpsread library by enabling a non-human, authorized service account (still under WiHK's official account but made for automation) access to the data. Do not share key!
