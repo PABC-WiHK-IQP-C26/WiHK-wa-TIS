@@ -1,1 +1,9 @@
 For local data copy, download the Master Booking document as a .csv file and place it in this folder
+For key.json file
+1. log-on to google-cloud console account. (In this case, the intern account was used)
+2. In the Google Cloud console, go to the Service accounts page.
+3. Select the project marked wihk-wpi-iqp-pabc
+4. On the Service accounts page, click the email address (wihk-intern-tis@wihk-wpi-iqp-pabc.iam.gserviceaccount.com)
+5. Click Keys. The Google Cloud console displays a list of keys for the service account.
+7. Download this key as key.json.
+8. Place in this folder
